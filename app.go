@@ -8,6 +8,15 @@ import (
     . "./route"
 )
 
+// todo, 将 value 函数转换为通用函数
+type typeMapRoute map[string]func(Request) []byte
+
+func addRoutes(m1 *typeMapRoute, m2 typeMapRoute) {
+    for k, v := range m2 {
+        (*m1)[k] = v
+    }
+}
+
 func handleClient(conn net.Conn) {
     request := make([]byte, 1024)
     defer conn.Close()
@@ -24,15 +33,12 @@ func handleClient(conn net.Conn) {
 }
 
 func responseForPath(path string, r Request) []byte {
-    m := map[string]func(Request) []byte{}
-    // todo, add route 函数
-    for k, v := range RouteIndex {
-        m[k] = v
-    }
+    m := typeMapRoute{}
+    addRoutes(&m, RouteIndex)
     fn, ok := m[path]
     var s []byte
     if !ok {
-        s = ErrorResponse(404)
+        s = ResponseError("404")
     } else {
         s = fn(r)
     }

@@ -16,13 +16,6 @@ func index(r Request) []byte {
     return m
 }
 
-// todo, 该函数应该移入 http 包
-func ErrorResponse(code int) []byte {
-    // todo, 根据 code 值返回不同错误响应
-    s := "HTTP/1.1 404 NOT FOUND\r\nContent-Type: text/html\r\n\r\n404 NOT FOUND!"
-    return []byte(s)
-}
-
 func doge(r Request) []byte {
     name := "doge.html"
     m := ResponseFile(name)

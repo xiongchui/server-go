@@ -5,13 +5,14 @@ import (
     "bytes"
 )
 
+// todo, response 中应为 setcookie 值
 type Response struct {
-    Protocol string
-    Status   string
-    Headers  map[string]string
-    Cookies  map[string]string
-    Body     []byte
-    Mime     string
+    Protocol  string
+    Status    string
+    Headers   map[string]string
+    SetCookie map[string]string
+    Body      []byte
+    Mime      string
 }
 
 func (r *Response) AddHeader(k string, v string) {
@@ -19,7 +20,7 @@ func (r *Response) AddHeader(k string, v string) {
 }
 
 func (r *Response) Init() {
-    r.Cookies = make(map[string]string)
+    r.SetCookie = make(map[string]string)
     r.Headers = make(map[string]string)
     r.Protocol = "HTTP/1.1"
 }
@@ -33,12 +34,15 @@ func (r *Response) Bytes() []byte {
         headers = append(headers, s)
     }
     var cookies []string
-    for k, v := range r.Cookies {
+    for k, v := range r.SetCookie {
         s := k + "=" + v
         cookies = append(cookies, s)
     }
-    cookie := "Cookie" + ": " + strings.Join(cookies, ": ")
-    headers = append(headers, cookie)
+    s := strings.Join(cookies, ": ")
+    if s != "" {
+        cookie := "Set-Cookie: " + s
+        headers = append(headers, cookie)
+    }
     m := []byte(strings.Join(headers, "\r\n"))
     bb := [][]byte{m, r.Body}
     data := bytes.Join(bb, []byte("\r\n\r\n"))
@@ -74,9 +78,9 @@ func ResponseFile(name string) []byte {
     b, err := fn(name)
     var r Response
     if err == nil {
-        r = responseSuccess()
+        r = responseByCode("200")
     } else {
-        r = responseFailure()
+        r = responseByCode("404")
     }
     r.Body = b
     suf := strings.Split(name, ".")[1]
@@ -90,16 +94,17 @@ func ResponseFile(name string) []byte {
     return d
 }
 
-func responseSuccess() Response {
-    r := Response{}
-    r.Init()
-    r.Status = "200"
-    return r
+// todo, error page 不一定存在, 应当使用默认页面
+func ResponseError(code string) []byte {
+    r := responseByCode(code)
+    r.Body, _ = ErrorPageByCode(code)
+    s := r.Bytes()
+    return []byte(s)
 }
 
-func responseFailure() Response {
+func responseByCode(code string) Response {
     r := Response{}
     r.Init()
-    r.Status = "404"
+    r.Status = code
     return r
 }
