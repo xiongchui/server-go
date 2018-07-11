@@ -14,11 +14,17 @@ type Response struct {
     Mime     string
 }
 
-func (r Response) AddHeader(k string, v string) {
+func (r *Response) AddHeader(k string, v string) {
     r.Headers[k] = v
 }
 
-func (r Response) Bytes() []byte {
+func (r *Response) Init() {
+    r.Cookies = make(map[string]string)
+    r.Headers = make(map[string]string)
+    r.Protocol = "HTTP/1.1"
+}
+
+func (r *Response) Bytes() []byte {
     arr := []string{r.Protocol, r.Status, mapStatus[r.Status]}
     header := strings.Join(arr, " ")
     headers := []string{header}
@@ -45,15 +51,27 @@ var mapMime = map[string]string{
     "gif":  "image/gif",
 }
 
+var mapFunc = map[string]func(string) ([]byte, error){
+    "html": Template,
+    "jpg":  Image,
+    "gif":  Image,
+}
+
 var mapStatus = map[string]string{
     "200": "OK",
     "404": "Not Found",
     "302": "Moved Temporarily",
 }
 
-// todo, 函数重构
-func ResponseTemplate(name string) []byte {
-    b, err := Template(name)
+func ResponseFile(name string) []byte {
+    var fn func(string) ([]byte, error)
+    for k, v := range mapFunc {
+        if strings.HasSuffix(name, k) {
+            fn = v
+            break
+        }
+    }
+    b, err := fn(name)
     var r Response
     if err == nil {
         r = responseSuccess()
@@ -66,27 +84,7 @@ func ResponseTemplate(name string) []byte {
         "Content-Type": mapMime[suf],
     }
     for k, v := range mapHeaders {
-        r.AddHeader(k, v)
-    }
-    d := r.Bytes()
-    return d
-}
-
-func ResponseImage(name string) []byte {
-    b, err := Image(name)
-    var r Response
-    if err == nil {
-        r = responseSuccess()
-    } else {
-        r = responseFailure()
-    }
-    r.Body = b
-    suf := strings.Split(name, ".")[1]
-    mapHeaders := map[string]string{
-        "Content-Type": mapMime[suf],
-    }
-    for k, v := range mapHeaders {
-        r.AddHeader(k, v)
+        r.Headers[k] = v
     }
     d := r.Bytes()
     return d
@@ -94,19 +92,14 @@ func ResponseImage(name string) []byte {
 
 func responseSuccess() Response {
     r := Response{}
-    r.Cookies = make(map[string]string)
-    r.Headers = make(map[string]string)
+    r.Init()
     r.Status = "200"
-    r.Protocol = "HTTP/1.1"
-
     return r
 }
 
 func responseFailure() Response {
     r := Response{}
-    r.Cookies = make(map[string]string)
-    r.Headers = make(map[string]string)
+    r.Init()
     r.Status = "404"
-    r.Protocol = "HTTP/1.1"
     return r
 }

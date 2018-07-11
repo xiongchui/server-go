@@ -6,14 +6,13 @@ import (
 
 func image(r Request) []byte {
     p := r.Query["path"]
-    m := ResponseImage(p)
+    m := ResponseFile(p)
     return m
 }
 
 func index(r Request) []byte {
     name := "index.html"
-    m := ResponseTemplate(name)
-    //fmt.Printf(string(m))
+    m := ResponseFile(name)
     return m
 }
 
@@ -26,7 +25,7 @@ func ErrorResponse(code int) []byte {
 
 func doge(r Request) []byte {
     name := "doge.html"
-    m := ResponseTemplate(name)
+    m := ResponseFile(name)
     return m
 }
 
