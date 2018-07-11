@@ -4,24 +4,16 @@ import (
 	. "../http"
 )
 
-// todo, 新增 Response 类，避免路由函数硬编码
 func image(r Request) []byte {
 	p := r.Query["path"]
-	b := Image(p)
-	s := []byte("HTTP/1.1 200 OK\r\nContent-Type: Image/gif\r\n\r\n")
-	if b == nil {
-		s = ErrorResponse(404)
-		return s
-	}
-	m := append([]byte(s), b...)
+	m := ResponseImage(p)
 	return m
 }
 
 func index(r Request) []byte {
-	s := "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n"
 	name := "index.html"
-	t := Template(name)
-	m := append([]byte(s), t...)
+	m := ResponseTemplate(name)
+	//fmt.Printf(string(m))
 	return m
 }
 
@@ -33,10 +25,8 @@ func ErrorResponse(code int) []byte {
 }
 
 func doge(r Request) []byte {
-	s := "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n"
 	name := "doge.html"
-	t := Template(name)
-	m := append([]byte(s), t...)
+	m := ResponseTemplate(name)
 	return m
 }
 
