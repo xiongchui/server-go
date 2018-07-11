@@ -24,10 +24,10 @@ func handleClient(conn net.Conn) {
 }
 
 func responseForPath(path string, r Request) []byte {
-	m := map[string]func(Request) []byte{
-		"/":     Index,
-		"/doge": Doge,
-		"/img":  ResponseImage,
+	m := map[string]func(Request) []byte{}
+	// todo, add route 函数
+	for k, v := range RouteIndex {
+		m[k] = v
 	}
 	fn, ok := m[path]
 	var s []byte

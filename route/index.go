@@ -1,11 +1,11 @@
 package route
 
-import . "../http"
+import (
+	. "../http"
+)
 
-// todo，函数名统一
 // todo, 新增 Response 类，避免路由函数硬编码
-
-func ResponseImage(r Request) []byte {
+func image(r Request) []byte {
 	p := r.Query["path"]
 	b := Image(p)
 	s := []byte("HTTP/1.1 200 OK\r\nContent-Type: Image/gif\r\n\r\n")
@@ -17,7 +17,7 @@ func ResponseImage(r Request) []byte {
 	return m
 }
 
-func Index(r Request) []byte {
+func index(r Request) []byte {
 	s := "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n"
 	name := "index.html"
 	t := Template(name)
@@ -32,7 +32,7 @@ func ErrorResponse(code int) []byte {
 	return []byte(s)
 }
 
-func Doge(r Request) []byte {
+func doge(r Request) []byte {
 	s := "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n"
 	name := "doge.html"
 	t := Template(name)
@@ -40,4 +40,8 @@ func Doge(r Request) []byte {
 	return m
 }
 
-// todo, 统一导出路由函数
+var RouteIndex = map[string]func(Request) []byte{
+	"/doge": doge,
+	"/":     index,
+	"/img":  image,
+}
